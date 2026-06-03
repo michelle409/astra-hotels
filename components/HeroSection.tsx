@@ -150,28 +150,59 @@ export function HeroSection() {
           aria-label="Where Every Stay Feels Like Home."
           style={{
             fontFamily: "var(--font-cormorant)",
-            fontSize: "clamp(2.8rem, 7vw, 7rem)",
+            fontSize: "clamp(2rem, 7vw, 7rem)",
             fontWeight: 300,
             lineHeight: 1.05,
             color: "white",
           }}
         >
-          {/* aria-hidden span — character split for animation only */}
+          {/* aria-hidden span — words wrapped to prevent mid-word line breaks */}
           <span aria-hidden="true">
-            {headline.split("").map((char, i) => (
-              <span
-                key={i}
-                ref={(el) => { charsRef.current[i] = el! }}
-                style={{
-                  display: "inline-block",
-                  opacity: reducedMotion ? 1 : 0,
-                  transform: reducedMotion ? "none" : "translateY(20px)",
-                  whiteSpace: char === " " ? "pre" : "normal",
-                }}
-              >
-                {char}
-              </span>
-            ))}
+            {(() => {
+              const words = headline.split(" ")
+              let ci = 0
+              const nodes: React.ReactNode[] = []
+              words.forEach((word, wi) => {
+                nodes.push(
+                  <span key={`w${wi}`} style={{ display: "inline-block", whiteSpace: "nowrap" }}>
+                    {word.split("").map((char) => {
+                      const idx = ci++
+                      return (
+                        <span
+                          key={idx}
+                          ref={(el) => { charsRef.current[idx] = el! }}
+                          style={{
+                            display: "inline-block",
+                            opacity: reducedMotion ? 1 : 0,
+                            transform: reducedMotion ? "none" : "translateY(20px)",
+                          }}
+                        >
+                          {char}
+                        </span>
+                      )
+                    })}
+                  </span>
+                )
+                if (wi < words.length - 1) {
+                  const idx = ci++
+                  nodes.push(
+                    <span
+                      key={`s${wi}`}
+                      ref={(el) => { charsRef.current[idx] = el! }}
+                      style={{
+                        display: "inline-block",
+                        opacity: reducedMotion ? 1 : 0,
+                        transform: reducedMotion ? "none" : "translateY(20px)",
+                        whiteSpace: "pre",
+                      }}
+                    >
+                      {" "}
+                    </span>
+                  )
+                }
+              })
+              return nodes
+            })()}
           </span>
         </h1>
 

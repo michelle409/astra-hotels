@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <>
       <Navigation />
-      <main id="main-content" tabIndex={-1}>
+      <main id="main-content" tabIndex={-1} style={{ paddingTop: "72px" }}>
         <HeroSection />
         <GpsFinder />
         <PropertiesGrid />

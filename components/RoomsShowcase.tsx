@@ -1,23 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import Image from "next/image"
-import { Camera } from "lucide-react"
-import { ROOMS, type Room } from "@/lib/data"
-import { Tour360Modal } from "./Tour360Modal"
+import { ROOMS } from "@/lib/data"
 
 export function RoomsShowcase() {
-  const [activeTour, setActiveTour] = useState<Room | null>(null)
-  const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-
-  function openTour(room: Room) {
-    setActiveTour(room)
-  }
-
-  function closeTour() {
-    setActiveTour(null)
-  }
-
   return (
     <section
       id="rooms"
@@ -49,25 +36,10 @@ export function RoomsShowcase() {
 
         <div className="flex flex-col gap-8">
           {ROOMS.map((room, idx) => (
-            <RoomCard
-              key={room.id}
-              room={room}
-              index={idx}
-              onOpenTour={() => openTour(room)}
-              triggerRef={(el) => {
-                if (el) triggerRefs.current.set(room.id, el)
-              }}
-            />
+            <RoomCard key={room.id} room={room} index={idx} />
           ))}
         </div>
       </div>
-
-      {activeTour && (
-        <Tour360Modal
-          room={activeTour}
-          onClose={closeTour}
-        />
-      )}
     </section>
   )
 }
@@ -75,11 +47,9 @@ export function RoomsShowcase() {
 type RoomCardProps = {
   room: (typeof ROOMS)[0]
   index: number
-  onOpenTour: () => void
-  triggerRef: (el: HTMLButtonElement | null) => void
 }
 
-function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
+function RoomCard({ room, index }: RoomCardProps) {
   const cardRef = useRef<HTMLElement>(null)
   const isEven = index % 2 === 0
 
@@ -128,34 +98,6 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
           sizes="(max-width: 768px) 100vw, 55vw"
           loading="lazy"
         />
-
-        {/* 360 tour badge */}
-        <div
-          className="absolute top-4 left-4 animate-pulse-slow"
-          aria-hidden="true"
-        >
-          <span
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white"
-            style={{
-              backgroundColor: "#561d70",
-              fontFamily: "var(--font-inter)",
-              fontSize: "11px",
-              fontWeight: 500,
-              letterSpacing: "0.1em",
-            }}
-          >
-            <Camera size={13} />
-            360° TOUR
-          </span>
-        </div>
-
-        {/* Clickable image overlay for tour */}
-        <button
-          onClick={onOpenTour}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          aria-label={`Open 360-degree virtual tour of ${room.name}`}
-          tabIndex={-1}
-        />
       </div>
 
       {/* Details side */}
@@ -198,7 +140,6 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
             {room.description}
           </p>
 
-          {/* Amenity pills — first 4 */}
           <div className="flex flex-wrap gap-2 mb-4" aria-label={`${room.name} amenities`}>
             {room.amenities.slice(0, 4).map((a) => (
               <span key={a} className="amenity-pill">
@@ -209,7 +150,6 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
         </div>
 
         <div>
-          {/* Price */}
           <p
             style={{
               fontFamily: "var(--font-cormorant)",
@@ -231,7 +171,6 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
             + 12% GST
           </p>
 
-          {/* Buttons */}
           <div className="flex gap-3 flex-wrap">
             <a
               href="/#booking"
@@ -244,21 +183,6 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
               BOOK NOW
               <span className="sr-only"> — {room.name}</span>
             </a>
-
-            <button
-              ref={triggerRef}
-              onClick={onOpenTour}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium tracking-wide transition-all duration-200 hover:bg-[#f3eef7]"
-              style={{
-                fontFamily: "var(--font-inter)",
-                border: "1.5px solid #561d70",
-                color: "#561d70",
-              }}
-              aria-label={`Take a 360-degree virtual tour of ${room.name}`}
-            >
-              <Camera size={14} aria-hidden="true" />
-              360° VIRTUAL TOUR
-            </button>
           </div>
         </div>
       </div>

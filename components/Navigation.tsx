@@ -153,7 +153,35 @@ export function Navigation() {
             animation: megaFadeIn 0.25s ease both;
           }
         }
+        .nav-logo-wrap {
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          max-height: 40px;
+        }
+        .nav-logo-wrap img {
+          height: 40px !important;
+          max-height: 40px !important;
+          width: auto !important;
+        }
+        @media (max-width: 767px) {
+          .nav-logo-wrap {
+            max-height: 32px;
+          }
+          .nav-logo-wrap img {
+            height: 32px !important;
+            max-height: 32px !important;
+          }
+        }
       `}</style>
+
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[1100] focus:px-4 focus:py-2 focus:bg-white focus:text-[#561d70] focus:rounded focus:font-medium"
+        style={{ fontFamily: "var(--font-inter)", fontSize: "14px" }}
+      >
+        Skip to main content
+      </a>
 
       <header
         role="banner"
@@ -162,7 +190,9 @@ export function Navigation() {
         )}
         style={{
           height: "72px",
-          backgroundColor: scrolled ? "white" : "transparent",
+          backgroundColor: scrolled ? "rgba(255,255,255,0.98)" : "transparent",
+          backdropFilter: scrolled ? "blur(12px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
           boxShadow: scrolled ? "0 2px 20px rgba(86,29,112,0.08)" : "none",
         }}
       >
@@ -172,19 +202,39 @@ export function Navigation() {
         >
           {/* Logo */}
           <Link href="/" aria-label="Astra Hotels & Suites — Home">
-            <Image
-              src="/media/astra-logo.png"
-              alt=""
-              width={140}
-              height={48}
-              style={{ objectFit: "contain", height: "auto" }}
-              priority
-            />
+            <div className="nav-logo-wrap">
+              <Image
+                src="/media/astra-logo.png"
+                alt=""
+                width={140}
+                height={40}
+                style={{ objectFit: "contain" }}
+                priority
+              />
+            </div>
           </Link>
 
           {/* Desktop nav */}
           <nav aria-label="Main navigation" className="hidden md:flex">
             <ul className="flex items-center gap-10 list-none" role="list">
+
+              <li>
+                <Link
+                  href="/"
+                  className="transition-colors duration-200 hover:text-[#561d70]"
+                  style={{
+                    fontFamily: "var(--font-inter)",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: navTextColor,
+                    textDecoration: "none",
+                  }}
+                >
+                  Home
+                </Link>
+              </li>
 
               {/* Hotels — hover + click trigger */}
               <li
@@ -197,7 +247,7 @@ export function Navigation() {
                   ref={triggerRef}
                   aria-expanded={megaOpen}
                   aria-controls="mega-menu"
-                  aria-haspopup="true"
+                  aria-haspopup="dialog"
                   onClick={() => megaOpen ? setMegaOpen(false) : openMega()}
                   onFocus={openMega}
                   onBlur={(e) => {
@@ -231,7 +281,7 @@ export function Navigation() {
                 </button>
               </li>
 
-              {(["About", "Locations", "Dining", "Contact"] as const).map(label => (
+              {(["About", "Locations", "Contact"] as const).map(label => (
                 <li key={label}>
                   <Link
                     href={`/#${label.toLowerCase()}`}
@@ -250,6 +300,23 @@ export function Navigation() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/dining"
+                  className="transition-colors duration-200 hover:text-[#561d70]"
+                  style={{
+                    fontFamily: "var(--font-inter)",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: navTextColor,
+                    textDecoration: "none",
+                  }}
+                >
+                  Dining
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -367,7 +434,7 @@ export function Navigation() {
                         <li key={b.id}>
                           <Link
                             ref={ci === 0 && gi === 0 && bi === 0 ? firstLinkRef : undefined}
-                            href={`/${b.id}`}
+                            href={`/property/${b.id}`}
                             onClick={() => setMegaOpen(false)}
                             style={{
                               display: "block",
@@ -605,7 +672,7 @@ export function Navigation() {
               {PROPERTIES.map(p => (
                 <li key={p.id}>
                   <Link
-                    href={`/${p.id}`}
+                    href={`/property/${p.id}`}
                     onClick={closeMobile}
                     className="block text-white hover:text-[#c084c8] transition-colors"
                     style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.5rem", fontWeight: 300 }}
@@ -614,6 +681,16 @@ export function Navigation() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/dining"
+                  onClick={closeMobile}
+                  className="block text-white hover:text-[#c084c8] transition-colors"
+                  style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.5rem", fontWeight: 300 }}
+                >
+                  Dining
+                </Link>
+              </li>
               <li className="mt-4">
                 <Link
                   href="/#booking"

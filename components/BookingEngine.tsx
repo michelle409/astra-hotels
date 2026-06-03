@@ -115,7 +115,7 @@ export function BookingEngine() {
         className="absolute inset-0 w-full h-full object-cover"
         style={{ zIndex: 0 }}
       >
-        <source src="/media/videos/lobby-video.mp4" type="video/mp4" />
+        <source src="/media/videos/hero-video.mp4" type="video/mp4" />
       </video>
       <div
         aria-hidden="true"

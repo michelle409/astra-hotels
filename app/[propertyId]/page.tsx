@@ -51,7 +51,7 @@ export default function PropertyPage({ params }: Props) {
   return (
     <>
       <Navigation />
-      <main id="main-content" tabIndex={-1}>
+      <main id="main-content" tabIndex={-1} style={{ paddingTop: "72px" }}>
         {/* Property Hero */}
         <section
           aria-label={`${property.name}, ${property.location} — hero`}

@@ -124,7 +124,7 @@ function PropertyCard({ group, index }: { group: LocationGroup; index: number })
 
         {!hasMultiple && (
           <Link
-            href={`/${group.branches[0].id}`}
+            href={`/property/${group.branches[0].id}`}
             aria-label={`Explore ${group.area} property`}
             style={{
               display: "inline-flex",
@@ -189,7 +189,7 @@ function PropertyCard({ group, index }: { group: LocationGroup; index: number })
               {group.branches.map((b) => (
                 <Link
                   key={b.id}
-                  href={`/${b.id}`}
+                  href={`/property/${b.id}`}
                   aria-label={`View ${b.location}`}
                   style={{
                     display: "flex",

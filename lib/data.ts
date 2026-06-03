@@ -28,12 +28,6 @@ export interface Property {
   images: string[]
 }
 
-export interface Tour360Scene {
-  id: string
-  label: string
-  image: string
-}
-
 export interface Room {
   id: string
   name: string
@@ -44,8 +38,6 @@ export interface Room {
   basePrice: number
   description: string
   image: string
-  tour360: string
-  tour360Scenes: Tour360Scene[]
   amenities: string[]
 }
 
@@ -88,7 +80,21 @@ export const PROPERTIES: Property[] = [
     description: "Strategically located in HSR Sector 1, ideal for business travelers with proximity to tech corridors and vibrant social scene.",
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
-    restaurant: null,
+    restaurant: {
+      name: "TBC",
+      cuisine: "Modern Indian · Continental · Craft Bar",
+      hours: "11:00 AM – 11:00 PM",
+      description: "A modern gastropub and lounge where contemporary meets comfortable. Bold Indian flavors, global comfort food, handcrafted cocktails, and an extensive craft beer selection.",
+      images: [
+        "/media/restaurants/tbc-1.jpg",
+        "/media/restaurants/tbc-2.jpg",
+        "/media/restaurants/tbc-3.jpg",
+        "/media/restaurants/tbc-4.jpg",
+        "/media/restaurants/tbc-5.jpg",
+        "/media/restaurants/tbc-6.jpg",
+      ],
+      websiteUrl: null
+    },
     heroImage: "/media/properties/hsr1-hero.jpg",
     cardImage: "/media/properties/card-2.jpg",
     images: ["/media/properties/hsr1-hero.jpg", "/media/properties/hotel-lobby-stock.jpg"]
@@ -240,13 +246,6 @@ export const ROOMS: Room[] = [
     basePrice: 4999,
     description: "Spacious 500 sq.ft. retreat for families. King bed plus twin beds with ample space for up to four guests to relax and enjoy together.",
     image: "/media/rooms/family-room.jpg",
-    tour360: "/media/360/room-360-1.jpg",
-    tour360Scenes: [
-      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-1.jpg" },
-      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
-      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" },
-      { id: "balcony", label: "Balcony", image: "/media/360/balcony-360.jpg" }
-    ],
     amenities: [
       "King Bed + 2 Twin Beds",
       "Air Conditioning",
@@ -270,13 +269,6 @@ export const ROOMS: Room[] = [
     basePrice: 3999,
     description: "450 sq.ft. of comfort with a separate kitchen — ideal for extended stays or guests who want extra flexibility and home-like convenience.",
     image: "/media/rooms/superior-club.jpg",
-    tour360: "/media/360/room-360-2.jpg",
-    tour360Scenes: [
-      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-2.jpg" },
-      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
-      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" },
-      { id: "balcony", label: "Balcony", image: "/media/360/balcony-360.jpg" }
-    ],
     amenities: [
       "King Bed",
       "Separate Kitchen",
@@ -300,12 +292,6 @@ export const ROOMS: Room[] = [
     basePrice: 2999,
     description: "Designed for comfort and style. 300 sq.ft. with a plush king bed, thoughtful amenities, and a restful atmosphere for business or leisure.",
     image: "/media/rooms/premium-king.jpg",
-    tour360: "/media/360/room-360-3.jpg",
-    tour360Scenes: [
-      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-3.jpg" },
-      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
-      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" }
-    ],
     amenities: [
       "King Bed",
       "Air Conditioning",
@@ -329,12 +315,6 @@ export const ROOMS: Room[] = [
     basePrice: 2799,
     description: "Two plush twin beds across 300 sq.ft. A practical, well-designed space equally suited for colleagues travelling together or leisure guests.",
     image: "/media/rooms/premium-twin.jpg",
-    tour360: "/media/360/room-360-4.jpg",
-    tour360Scenes: [
-      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-4.jpg" },
-      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
-      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" }
-    ],
     amenities: [
       "2 Twin Beds",
       "Air Conditioning",

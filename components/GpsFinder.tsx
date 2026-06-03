@@ -8,7 +8,10 @@ import { getDistance } from "@/lib/utils"
 
 type NearestResult = {
   property: (typeof PROPERTIES)[0]
-  distance: number
+  distanceKm: number
+  distanceText: string
+  durationText: string | null
+  isApprox: boolean
 }
 
 export function GpsFinder() {
@@ -26,6 +29,42 @@ export function GpsFinder() {
     setPrefersReduced(mq.matches)
   }, [])
 
+  async function findWithRoadDistance(latitude: number, longitude: number): Promise<NearestResult> {
+    const res = await fetch(`/api/distance?originLat=${latitude}&originLng=${longitude}`)
+    if (!res.ok) throw new Error("API failed")
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+
+    const property = PROPERTIES.find((p) => p.id === data.propertyId)
+    if (!property) throw new Error("Unknown property")
+
+    return {
+      property,
+      distanceKm: data.distanceValue / 1000,
+      distanceText: data.distanceText,
+      durationText: data.durationText,
+      isApprox: false,
+    }
+  }
+
+  function findWithHaversine(latitude: number, longitude: number): NearestResult {
+    let nearest = PROPERTIES[0]
+    let minDist = getDistance(latitude, longitude, PROPERTIES[0].lat, PROPERTIES[0].lng)
+
+    for (const p of PROPERTIES) {
+      const d = getDistance(latitude, longitude, p.lat, p.lng)
+      if (d < minDist) { minDist = d; nearest = p }
+    }
+
+    return {
+      property: nearest,
+      distanceKm: minDist,
+      distanceText: `approx. ${minDist.toFixed(1)} km`,
+      durationText: null,
+      isApprox: true,
+    }
+  }
+
   function handleDetect() {
     setLoading(true)
     setError(null)
@@ -38,21 +77,24 @@ export function GpsFinder() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords
-        let nearest = PROPERTIES[0]
-        let minDist = getDistance(latitude, longitude, PROPERTIES[0].lat, PROPERTIES[0].lng)
+        let nearest: NearestResult
 
-        for (const p of PROPERTIES) {
-          const d = getDistance(latitude, longitude, p.lat, p.lng)
-          if (d < minDist) { minDist = d; nearest = p }
+        try {
+          nearest = await findWithRoadDistance(latitude, longitude)
+        } catch {
+          nearest = findWithHaversine(latitude, longitude)
         }
 
-        setResult({ property: nearest, distance: minDist })
+        // Set result and live region after final data is resolved
+        setResult(nearest)
         setLoading(false)
 
         if (statusRef.current) {
-          statusRef.current.textContent = `Nearest hotel found: ${nearest.name}, ${nearest.location}, ${minDist.toFixed(1)} km away`
+          const timeStr = nearest.durationText ? `, ${nearest.durationText} drive` : ""
+          statusRef.current.textContent =
+            `Nearest hotel found: ${nearest.property.name}, ${nearest.property.location}, ${nearest.distanceText}${timeStr}`
         }
       },
       () => {
@@ -66,10 +108,10 @@ export function GpsFinder() {
   // Animate distance counter — decorative only, no live region
   useEffect(() => {
     if (!result || prefersReduced) {
-      if (result) setDisplayDist(parseFloat(result.distance.toFixed(1)))
+      if (result) setDisplayDist(parseFloat(result.distanceKm.toFixed(1)))
       return
     }
-    const target = parseFloat(result.distance.toFixed(1))
+    const target = parseFloat(result.distanceKm.toFixed(1))
     const start = performance.now()
     const duration = 1500
 
@@ -180,7 +222,7 @@ export function GpsFinder() {
               marginBottom: "40px",
             }}
           >
-            {"We'll detect your location and find the closest Astra property — with accurate straight-line distance."}
+            {"We'll detect your location and find the closest Astra property — with real road distance and drive time."}
           </p>
 
           {!result && (
@@ -352,7 +394,7 @@ export function GpsFinder() {
                   fontFamily: "var(--font-inter)",
                   fontWeight: 300,
                   fontSize: "15px",
-                  color: "#8a6a9a",
+                  color: "#6b4d80",
                   marginBottom: "24px",
                 }}
               >
@@ -364,8 +406,13 @@ export function GpsFinder() {
                 style={{ display: "flex", gap: "24px", alignItems: "center", marginBottom: "20px" }}
               >
                 <div>
+                  {/* aria-label is self-contained for screen readers; animated span is decorative */}
                   <p
-                    aria-label={`${result.distance.toFixed(1)} kilometres straight-line distance`}
+                    aria-label={
+                      result.isApprox
+                        ? `${result.distanceText} straight-line estimate`
+                        : `${result.distanceText} by road`
+                    }
                     style={{
                       fontFamily: "var(--font-cormorant)",
                       fontWeight: 600,
@@ -374,19 +421,38 @@ export function GpsFinder() {
                       lineHeight: 1,
                     }}
                   >
-                    <span aria-hidden="true">{displayDist.toFixed(1)} km</span>
+                    <span aria-hidden="true">
+                      {displayDist < 1
+                        ? `${Math.round(displayDist * 1000)} m`
+                        : `${displayDist.toFixed(1)} km`}
+                    </span>
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-inter)",
-                      fontWeight: 300,
-                      fontSize: "12px",
-                      color: "#8a6a9a",
-                      marginTop: "4px",
-                    }}
-                  >
-                    straight-line distance
-                  </p>
+                  {result.durationText && (
+                    <p
+                      style={{
+                        fontFamily: "var(--font-inter)",
+                        fontWeight: 300,
+                        fontSize: "12px",
+                        color: "#6b4d80",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {result.durationText} by road
+                    </p>
+                  )}
+                  {result.isApprox && (
+                    <p
+                      style={{
+                        fontFamily: "var(--font-inter)",
+                        fontWeight: 300,
+                        fontSize: "11px",
+                        color: "#6b4d80",
+                        marginTop: "4px",
+                      }}
+                    >
+                      straight-line estimate
+                    </p>
+                  )}
                 </div>
 
                 <a
@@ -433,7 +499,7 @@ export function GpsFinder() {
 
               <div style={{ display: "flex", gap: "12px" }}>
                 <Link
-                  href={`/${result.property.id}`}
+                  href={`/property/${result.property.id}`}
                   style={{
                     flex: 1,
                     display: "flex",
@@ -458,7 +524,7 @@ export function GpsFinder() {
                   VIEW PROPERTY
                 </Link>
                 <Link
-                  href={`/${result.property.id}#booking`}
+                  href={`/property/${result.property.id}`}
                   style={{
                     flex: 1,
                     display: "flex",
