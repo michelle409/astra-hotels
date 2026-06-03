@@ -3,17 +3,15 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Camera } from "lucide-react"
-import { ROOMS } from "@/lib/data"
+import { ROOMS, type Room } from "@/lib/data"
 import { Tour360Modal } from "./Tour360Modal"
 
 export function RoomsShowcase() {
-  const [activeTour, setActiveTour] = useState<{ imageUrl: string; roomName: string } | null>(null)
+  const [activeTour, setActiveTour] = useState<Room | null>(null)
   const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
 
-  function openTour(roomId: string, imageUrl: string, roomName: string) {
-    setActiveTour({ imageUrl, roomName })
-    const trigger = triggerRefs.current.get(roomId)
-    if (trigger) trigger.dataset.tourId = roomId
+  function openTour(room: Room) {
+    setActiveTour(room)
   }
 
   function closeTour() {
@@ -55,7 +53,7 @@ export function RoomsShowcase() {
               key={room.id}
               room={room}
               index={idx}
-              onOpenTour={(imageUrl, roomName) => openTour(room.id, imageUrl, roomName)}
+              onOpenTour={() => openTour(room)}
               triggerRef={(el) => {
                 if (el) triggerRefs.current.set(room.id, el)
               }}
@@ -66,8 +64,7 @@ export function RoomsShowcase() {
 
       {activeTour && (
         <Tour360Modal
-          imageUrl={activeTour.imageUrl}
-          roomName={activeTour.roomName}
+          room={activeTour}
           onClose={closeTour}
         />
       )}
@@ -78,7 +75,7 @@ export function RoomsShowcase() {
 type RoomCardProps = {
   room: (typeof ROOMS)[0]
   index: number
-  onOpenTour: (imageUrl: string, roomName: string) => void
+  onOpenTour: () => void
   triggerRef: (el: HTMLButtonElement | null) => void
 }
 
@@ -154,7 +151,7 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
 
         {/* Clickable image overlay for tour */}
         <button
-          onClick={() => onOpenTour(room.tour360, room.name)}
+          onClick={onOpenTour}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           aria-label={`Open 360-degree virtual tour of ${room.name}`}
           tabIndex={-1}
@@ -250,7 +247,7 @@ function RoomCard({ room, index, onOpenTour, triggerRef }: RoomCardProps) {
 
             <button
               ref={triggerRef}
-              onClick={() => onOpenTour(room.tour360, room.name)}
+              onClick={onOpenTour}
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[13px] font-medium tracking-wide transition-all duration-200 hover:bg-[#f3eef7]"
               style={{
                 fontFamily: "var(--font-inter)",

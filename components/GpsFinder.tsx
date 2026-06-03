@@ -138,42 +138,71 @@ export function GpsFinder() {
         </p>
 
         {!result && (
-          <button
-            onClick={handleDetect}
-            disabled={loading}
-            aria-busy={loading}
-            aria-label="Find nearest Astra hotel using my location"
-            className="inline-flex items-center gap-3 text-white text-[14px] font-medium tracking-widest uppercase rounded-md transition-all duration-300 disabled:opacity-70"
-            style={{
-              fontFamily: "var(--font-inter)",
-              backgroundColor: "#561d70",
-              height: "52px",
-              padding: "0 32px",
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.backgroundColor = "#3d1452"
-                e.currentTarget.style.transform = "scale(1.02)"
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#561d70"
-              e.currentTarget.style.transform = "scale(1)"
-            }}
-          >
-            {loading ? (
+          <div className="inline-flex items-center justify-center relative">
+            {/* Pulse rings when loading */}
+            {loading && (
               <>
-                <Loader2 size={20} aria-hidden="true" className="animate-spin" />
-                <span className="sr-only">Finding nearest hotel...</span>
-                Finding...
-              </>
-            ) : (
-              <>
-                <MapPin size={20} aria-hidden="true" />
-                DETECT MY LOCATION
+                <style>{`
+                  @keyframes gps-ring {
+                    0% { transform: scale(1); opacity: 0.6; }
+                    100% { transform: scale(2.2); opacity: 0; }
+                  }
+                `}</style>
+                {[0, 0.4, 0.8].map((delay) => (
+                  <span
+                    key={delay}
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: "8px",
+                      border: "2px solid #c084c8",
+                      animation: `gps-ring 1.8s ease-out ${delay}s infinite`,
+                      pointerEvents: "none",
+                    }}
+                  />
+                ))}
               </>
             )}
-          </button>
+            <button
+              onClick={handleDetect}
+              disabled={loading}
+              aria-busy={loading}
+              aria-label="Find nearest Astra hotel using my location"
+              className="inline-flex items-center gap-3 text-white text-[14px] font-medium tracking-widest uppercase rounded-md transition-all duration-300 disabled:opacity-70"
+              style={{
+                fontFamily: "var(--font-inter)",
+                backgroundColor: "#561d70",
+                height: "52px",
+                padding: "0 32px",
+                position: "relative",
+                zIndex: 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = "#3d1452"
+                  e.currentTarget.style.transform = "scale(1.02)"
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#561d70"
+                e.currentTarget.style.transform = "scale(1)"
+              }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={20} aria-hidden="true" className="animate-spin" />
+                  <span className="sr-only">Finding nearest hotel...</span>
+                  Finding...
+                </>
+              ) : (
+                <>
+                  <MapPin size={20} aria-hidden="true" />
+                  DETECT MY LOCATION
+                </>
+              )}
+            </button>
+          </div>
         )}
 
         {/* Error state — role="alert" for assertive announcement */}

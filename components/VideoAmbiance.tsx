@@ -145,7 +145,22 @@ export function VideoAmbiance() {
             marginBottom: "1rem",
           }}
         >
-          Experience Astra
+          {"Experience Astra".split(" ").map((word, i) => (
+            <span
+              key={word + i}
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                marginRight: "0.35em",
+                opacity: triggered ? 1 : 0,
+                transform: triggered ? "translateY(0)" : "translateY(30px)",
+                transition: `opacity 0.6s ease ${i * 0.15}s, transform 0.6s ease ${i * 0.15}s`,
+              }}
+            >
+              {word}
+            </span>
+          ))}
+          <span className="sr-only">Experience Astra</span>
         </h2>
         <p
           style={{
@@ -158,7 +173,22 @@ export function VideoAmbiance() {
             marginBottom: "4rem",
           }}
         >
-          Where every detail is designed for your comfort.
+          {"Where every detail is designed for your comfort.".split(" ").map((word, i) => (
+            <span
+              key={word + i}
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                marginRight: "0.28em",
+                opacity: triggered ? 1 : 0,
+                transform: triggered ? "translateY(0)" : "translateY(20px)",
+                transition: `opacity 0.5s ease ${0.3 + i * 0.08}s, transform 0.5s ease ${0.3 + i * 0.08}s`,
+              }}
+            >
+              {word}
+            </span>
+          ))}
+          <span className="sr-only">Where every detail is designed for your comfort.</span>
         </p>
 
         <div

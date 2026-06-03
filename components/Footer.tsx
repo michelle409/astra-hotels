@@ -78,7 +78,7 @@ export function Footer() {
                       fontSize: "14px",
                       color: "rgba(255,255,255,0.65)",
                     }}
-                    className="hover:text-white transition-colors"
+                    className="hover:text-[#c084c8] hover:translate-x-1 transition-all duration-200 inline-block"
                   >
                     {p.area}
                   </Link>
@@ -113,7 +113,7 @@ export function Footer() {
                       fontSize: "14px",
                       color: "rgba(255,255,255,0.65)",
                     }}
-                    className="hover:text-white transition-colors"
+                    className="hover:text-[#c084c8] hover:translate-x-1 transition-all duration-200 inline-block"
                   >
                     {l.label}
                   </Link>

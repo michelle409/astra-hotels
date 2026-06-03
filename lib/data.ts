@@ -24,7 +24,14 @@ export interface Property {
   checkOut: string
   restaurant: Restaurant | null
   heroImage: string
+  cardImage: string
   images: string[]
+}
+
+export interface Tour360Scene {
+  id: string
+  label: string
+  image: string
 }
 
 export interface Room {
@@ -38,6 +45,7 @@ export interface Room {
   description: string
   image: string
   tour360: string
+  tour360Scenes: Tour360Scene[]
   amenities: string[]
 }
 
@@ -62,8 +70,9 @@ export const PROPERTIES: Property[] = [
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
     restaurant: null,
-    heroImage: "/media/rooms/ec-lobby.jpg",
-    images: ["/media/rooms/ec-lobby.jpg", "/media/properties/hotel-exterior.jpg"]
+    heroImage: "/media/properties/ec-hero.jpg",
+    cardImage: "/media/properties/card-1.jpg",
+    images: ["/media/properties/ec-hero.jpg", "/media/properties/hotel-exterior.jpg"]
   },
   {
     id: "hsr-sector-1",
@@ -80,8 +89,9 @@ export const PROPERTIES: Property[] = [
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
     restaurant: null,
-    heroImage: "/media/rooms/premium-king.jpg",
-    images: ["/media/rooms/premium-king.jpg", "/media/properties/hotel-lobby-stock.jpg"]
+    heroImage: "/media/properties/hsr1-hero.jpg",
+    cardImage: "/media/properties/card-2.jpg",
+    images: ["/media/properties/hsr1-hero.jpg", "/media/properties/hotel-lobby-stock.jpg"]
   },
   {
     id: "hsr-sector-7",
@@ -98,8 +108,9 @@ export const PROPERTIES: Property[] = [
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
     restaurant: null,
-    heroImage: "/media/rooms/premium-twin.jpg",
-    images: ["/media/rooms/premium-twin.jpg", "/media/properties/hotel-room-stock.jpg"]
+    heroImage: "/media/properties/hsr7-hero.jpg",
+    cardImage: "/media/properties/card-3.jpg",
+    images: ["/media/properties/hsr7-hero.jpg", "/media/properties/hotel-room-stock.jpg"]
   },
   {
     id: "kadubeesanahalli",
@@ -116,8 +127,9 @@ export const PROPERTIES: Property[] = [
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
     restaurant: null,
-    heroImage: "/media/rooms/superior-club.jpg",
-    images: ["/media/rooms/superior-club.jpg", "/media/properties/hotel-exterior.jpg"]
+    heroImage: "/media/properties/kadu-hero.jpg",
+    cardImage: "/media/properties/card-4.jpg",
+    images: ["/media/properties/kadu-hero.jpg", "/media/properties/hotel-exterior.jpg"]
   },
   {
     id: "koramangala",
@@ -144,8 +156,9 @@ export const PROPERTIES: Property[] = [
       ],
       websiteUrl: null
     },
-    heroImage: "/media/rooms/family-room.jpg",
-    images: ["/media/rooms/family-room.jpg", "/media/properties/hotel-dining.jpg"]
+    heroImage: "/media/properties/kora-hero.jpg",
+    cardImage: "/media/properties/card-5.jpg",
+    images: ["/media/properties/kora-hero.jpg", "/media/properties/hotel-dining.jpg"]
   },
   {
     id: "marathahalli",
@@ -172,12 +185,9 @@ export const PROPERTIES: Property[] = [
       ],
       websiteUrl: null
     },
-    heroImage: "/media/rooms/lobby.jpg",
-    images: [
-      "/media/rooms/lobby.jpg",
-      "/media/rooms/family-room.jpg",
-      "/media/rooms/premium-king.jpg"
-    ]
+    heroImage: "/media/properties/mara-hero.jpg",
+    cardImage: "/media/properties/card-6.jpg",
+    images: ["/media/properties/mara-hero.jpg", "/media/rooms/family-room.jpg", "/media/rooms/premium-king.jpg"]
   },
   {
     id: "sarjapur",
@@ -194,8 +204,9 @@ export const PROPERTIES: Property[] = [
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
     restaurant: null,
-    heroImage: "/media/rooms/premium-twin.jpg",
-    images: ["/media/rooms/premium-twin.jpg", "/media/properties/hotel-room-stock.jpg"]
+    heroImage: "/media/properties/sarja-hero.jpg",
+    cardImage: "/media/properties/card-7.jpg",
+    images: ["/media/properties/sarja-hero.jpg", "/media/properties/hotel-room-stock.jpg"]
   },
   {
     id: "whitefield",
@@ -212,8 +223,9 @@ export const PROPERTIES: Property[] = [
     checkIn: "12:00 PM",
     checkOut: "11:00 AM",
     restaurant: null,
-    heroImage: "/media/rooms/superior-club.jpg",
-    images: ["/media/rooms/superior-club.jpg", "/media/properties/hotel-exterior.jpg"]
+    heroImage: "/media/properties/white-hero.jpg",
+    cardImage: "/media/properties/card-1.jpg",
+    images: ["/media/properties/white-hero.jpg", "/media/properties/hotel-exterior.jpg"]
   }
 ]
 
@@ -229,6 +241,12 @@ export const ROOMS: Room[] = [
     description: "Spacious 500 sq.ft. retreat for families. King bed plus twin beds with ample space for up to four guests to relax and enjoy together.",
     image: "/media/rooms/family-room.jpg",
     tour360: "/media/360/room-360-1.jpg",
+    tour360Scenes: [
+      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-1.jpg" },
+      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
+      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" },
+      { id: "balcony", label: "Balcony", image: "/media/360/balcony-360.jpg" }
+    ],
     amenities: [
       "King Bed + 2 Twin Beds",
       "Air Conditioning",
@@ -253,6 +271,12 @@ export const ROOMS: Room[] = [
     description: "450 sq.ft. of comfort with a separate kitchen — ideal for extended stays or guests who want extra flexibility and home-like convenience.",
     image: "/media/rooms/superior-club.jpg",
     tour360: "/media/360/room-360-2.jpg",
+    tour360Scenes: [
+      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-2.jpg" },
+      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
+      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" },
+      { id: "balcony", label: "Balcony", image: "/media/360/balcony-360.jpg" }
+    ],
     amenities: [
       "King Bed",
       "Separate Kitchen",
@@ -277,6 +301,11 @@ export const ROOMS: Room[] = [
     description: "Designed for comfort and style. 300 sq.ft. with a plush king bed, thoughtful amenities, and a restful atmosphere for business or leisure.",
     image: "/media/rooms/premium-king.jpg",
     tour360: "/media/360/room-360-3.jpg",
+    tour360Scenes: [
+      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-3.jpg" },
+      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
+      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" }
+    ],
     amenities: [
       "King Bed",
       "Air Conditioning",
@@ -300,7 +329,12 @@ export const ROOMS: Room[] = [
     basePrice: 2799,
     description: "Two plush twin beds across 300 sq.ft. A practical, well-designed space equally suited for colleagues travelling together or leisure guests.",
     image: "/media/rooms/premium-twin.jpg",
-    tour360: "/media/360/room-360-1.jpg",
+    tour360: "/media/360/room-360-4.jpg",
+    tour360Scenes: [
+      { id: "bedroom", label: "Bedroom", image: "/media/360/room-360-4.jpg" },
+      { id: "bathroom", label: "Bathroom", image: "/media/360/bathroom-360.jpg" },
+      { id: "living", label: "Living Area", image: "/media/360/living-360.jpg" }
+    ],
     amenities: [
       "2 Twin Beds",
       "Air Conditioning",
@@ -342,7 +376,7 @@ export const MARATHAHALLI_ATTRACTIONS = [
   { distance: "16.1 km", name: "Bengaluru Palace", type: "Heritage" }
 ]
 
-export function getGenericAttractions(area: string) {
+export function getGenericAttractions(_area: string) {
   return [
     { distance: "2.0 km", name: "Nearest Metro Station", type: "Transport" },
     { distance: "3.5 km", name: "City Shopping Mall", type: "Shopping" },

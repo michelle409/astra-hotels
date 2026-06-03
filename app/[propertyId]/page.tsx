@@ -1,7 +1,7 @@
 "use client"
 
 import { notFound, useSearchParams } from "next/navigation"
-import { use, useRef } from "react"
+import { use, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, MapPin, Clock, UtensilsCrossed, Phone, Mail, MessageCircle } from "lucide-react"
@@ -30,6 +30,15 @@ export default function PropertyPage({ params }: Props) {
   const roomType = searchParams.get("roomType") || ""
 
   const bookingSectionRef = useRef<HTMLDivElement>(null)
+  const [heroParallax, setHeroParallax] = useState(0)
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    if (mq.matches) return
+    const onScroll = () => setHeroParallax(window.scrollY * 0.3)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   function scrollToBooking(preSelectRoom?: string) {
     bookingSectionRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -49,7 +58,10 @@ export default function PropertyPage({ params }: Props) {
           className="relative overflow-hidden"
           style={{ height: "100dvh", minHeight: "600px" }}
         >
-          <div className="absolute inset-0 ken-burns" style={{ zIndex: 0 }}>
+          <div
+            className="absolute inset-0 ken-burns"
+            style={{ zIndex: 0, transform: `translateY(${heroParallax}px)`, willChange: "transform" }}
+          >
             <Image
               src={property.heroImage}
               alt={`${property.name} — ${property.area}`}
@@ -202,7 +214,7 @@ export default function PropertyPage({ params }: Props) {
         </section>
 
         {/* Rooms with 360 tours */}
-        <PropertyRoomsSection onSelectRoom={(roomId) => scrollToBooking(roomId)} />
+        <PropertyRoomsSection property={property} />
 
         {/* Day Use Rooms */}
         <section

@@ -29,9 +29,9 @@ const TESTIMONIALS = [
 
 function Stars({ count }: { count: number }) {
   return (
-    <span aria-label={`${count} out of 5 stars`} className="flex gap-0.5">
+    <span aria-label={`${count} out of 5 stars`} className="flex gap-1 justify-center">
       {Array.from({ length: count }).map((_, i) => (
-        <span key={i} aria-hidden="true" style={{ color: "#c9a84c", fontSize: "18px" }}>
+        <span key={i} aria-hidden="true" style={{ color: "#c9a84c", fontSize: "22px" }}>
           ★
         </span>
       ))}
@@ -73,7 +73,7 @@ export function Testimonials() {
       ref={sectionRef}
       aria-label="Guest testimonials"
       aria-roledescription="carousel"
-      className="py-20 px-6"
+      className="py-28 px-6"
       style={{ backgroundColor: "var(--off-white)" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -99,7 +99,7 @@ export function Testimonials() {
               style={{
                 fontFamily: "var(--font-cormorant)",
                 fontWeight: 300,
-                fontSize: "clamp(1.4rem, 3vw, 1.8rem)",
+                fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
                 color: "#2d1b3d",
                 fontStyle: "italic",
                 lineHeight: 1.5,

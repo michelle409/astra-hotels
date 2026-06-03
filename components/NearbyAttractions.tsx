@@ -57,7 +57,7 @@ export function NearbyAttractions({ propertyId }: Props) {
             <article
               key={a.name}
               role="listitem"
-              className="flex-shrink-0 rounded-xl p-5"
+              className="flex-shrink-0 rounded-xl p-5 transition-all duration-300 hover:scale-[1.03] hover:brightness-125"
               style={{
                 width: "200px",
                 backgroundColor: "rgba(86,29,112,0.15)",
