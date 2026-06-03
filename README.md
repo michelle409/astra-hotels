@@ -3,7 +3,7 @@
 A full-stack multi-property hospitality website with immersive UI, built for a hotel chain across 8 Bangalore locations.
 
 ## 🔗 Live Demo
-[astra-site.vercel.app](https://astra-site.vercel.app)
+https://astra-site-zeta.vercel.app/
 
 ## ✨ Features
 - GPS-based nearest hotel finder
