@@ -1,26 +1,240 @@
 @import "tailwindcss";
 
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500&display=swap");
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-cormorant: "Cormorant Garamond", Georgia, serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+  --purple: #561d70;
+  --purple-light: #7b3fa0;
+  --purple-deep: #3d1452;
+  --pink: #c084c8;
+  --gold: #c9a84c;
+  --dark: #1a0a24;
+  --text-dark: #2d1b3d;
+  --off-white: #faf7fc;
+  --light-gray: #f3eef7;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter);
+  background: #ffffff;
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+/* --- CRITICAL: Global focus ring (WCAG 2.4.7) --- */
+/* On light backgrounds */
+:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* On dark backgrounds — override in dark-bg contexts */
+.dark-bg :focus-visible {
+  outline-color: var(--gold);
+}
+
+/* Ken Burns animation */
+@keyframes kenBurns {
+  0% { transform: scale(1.08); }
+  100% { transform: scale(1.0); }
+}
+
+.ken-burns {
+  animation: kenBurns 8s ease-in-out infinite alternate;
+}
+
+/* Float animation */
+@keyframes floatDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.animate-float {
+  animation: floatDown 2s ease-in-out infinite;
+}
+
+/* Pulse slow */
+@keyframes pulseSlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 2s ease-in-out infinite;
+}
+
+/* Shake for validation errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.4s ease-out;
+}
+
+/* Gold sweep hover effect on dark backgrounds only */
+.gold-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.gold-sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 0;
+}
+
+.gold-sweep:hover::before {
+  transform: translateX(0);
+}
+
+.gold-sweep > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--off-white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--purple);
+  border-radius: 3px;
+}
+
+/* Reduced motion — WCAG 2.2.2, 2.3.3 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ken-burns {
+    animation: none;
+    transform: scale(1);
+  }
+
+  video[aria-hidden="true"] {
+    display: none;
+  }
+
+  .shake {
+    animation: none;
+  }
+}
+
+/* Form field */
+.form-field {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #e8d5f0;
+  border-radius: 8px;
+  font-family: var(--font-inter);
+  font-size: 14px;
+  color: var(--text-dark);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.form-field:focus-visible {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(86, 29, 112, 0.15);
+  outline: none;
+}
+
+.form-field.error {
+  border-color: #dc2626;
+}
+
+.form-field.error:focus-visible {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+/* Label caps */
+.label-caps {
+  font-family: var(--font-inter);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Amenity pill */
+.amenity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--purple);
+  border-radius: 6px;
+  color: var(--purple);
+  font-size: 12px;
+  font-family: var(--font-inter);
+  font-weight: 400;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip link (WCAG 2.4.1) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 10000;
+  padding: 0.5rem 1rem;
+  background: var(--purple);
+  color: #fff;
+  border-radius: 0 0 6px 6px;
+  font-family: var(--font-inter);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
