@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import { RouteAnnouncer } from "@/components/RouteAnnouncer"
+import { ScrollProgressBar } from "@/components/ScrollProgressBar"
 
 export const metadata: Metadata = {
   title: {
@@ -24,6 +25,7 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
+        <ScrollProgressBar />
         <RouteAnnouncer />
         {children}
       </body>

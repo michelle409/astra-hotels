@@ -2,16 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import {
-  Wine,
-  Ban,
-  ArrowUp,
-  Clock,
-  Tag,
-  Wifi,
-  Car,
-  ConciergeBell,
-  Users,
-  Shield,
+  Wine, Ban, ArrowUp, Clock, Tag, Wifi, Car, ConciergeBell, Users, Shield,
 } from "lucide-react"
 import { AMENITIES } from "@/lib/data"
 
@@ -55,16 +46,12 @@ export function AmenitiesSection({ variant = "dark", heading = "Everything You N
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          items.forEach((el) => {
-            el.style.opacity = "1"
-            el.style.transform = "translateY(0) scale(1)"
-          })
+          items.forEach((el) => { el.style.opacity = "1"; el.style.transform = "translateY(0) scale(1)" })
           observer.disconnect()
         }
       },
       { threshold: 0.15 }
     )
-
     if (gridRef.current) observer.observe(gridRef.current)
     return () => observer.disconnect()
   }, [])
@@ -74,14 +61,18 @@ export function AmenitiesSection({ variant = "dark", heading = "Everything You N
   return (
     <section
       aria-labelledby="amenities-heading"
-      className="py-28 px-6"
-      style={{ backgroundColor: isDark ? "#1a0a24" : "white" }}
+      className="section-padding"
+      style={{
+        backgroundColor: isDark ? "#1a0a24" : "white",
+        paddingLeft: "48px",
+        paddingRight: "48px",
+      }}
     >
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+      <div className="site-container">
+        <div style={{ textAlign: "center", marginBottom: "64px" }}>
           <p
-            className="label-caps mb-4"
-            style={{ color: isDark ? "#c084c8" : "#561d70" }}
+            className="label-caps"
+            style={{ color: isDark ? "#c084c8" : "#561d70", marginBottom: "16px" }}
             aria-hidden="true"
           >
             HOTEL AMENITIES
@@ -101,33 +92,57 @@ export function AmenitiesSection({ variant = "dark", heading = "Everything You N
 
         <ul
           ref={gridRef}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5 list-none"
           role="list"
           aria-label="Hotel amenities"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            gap: "24px",
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+          }}
         >
           {AMENITIES.map((a) => (
             <li
               key={a.label}
               data-amenity
-              className="group flex flex-col items-center text-center rounded-xl p-6 transition-all duration-300 cursor-default"
               style={{
-                border: isDark ? "1px solid rgba(192,132,200,0.2)" : "1px solid #e8d5f0",
-                backgroundColor: isDark ? "rgba(86,29,112,0.15)" : "#faf7fc",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                minHeight: "160px",
+                padding: "40px 24px",
+                borderRadius: "16px",
+                border: isDark ? "1px solid rgba(201,168,76,0.2)" : "1px solid #e8d5f0",
+                backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#faf7fc",
+                cursor: "default",
+                transition: "border-color 0.25s, background 0.25s, transform 0.25s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = isDark ? "rgba(86,29,112,0.35)" : "#f0e4f8"
-                e.currentTarget.style.borderColor = isDark ? "rgba(192,132,200,0.5)" : "#c084c8"
+                e.currentTarget.style.borderColor = "#c9a84c"
+                e.currentTarget.style.backgroundColor = isDark ? "rgba(201,168,76,0.06)" : "#f0e4f8"
                 e.currentTarget.style.transform = "translateY(-4px)"
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = isDark ? "rgba(86,29,112,0.15)" : "#faf7fc"
-                e.currentTarget.style.borderColor = isDark ? "rgba(192,132,200,0.2)" : "#e8d5f0"
+                e.currentTarget.style.borderColor = isDark ? "rgba(201,168,76,0.2)" : "#e8d5f0"
+                e.currentTarget.style.backgroundColor = isDark ? "rgba(255,255,255,0.04)" : "#faf7fc"
                 e.currentTarget.style.transform = "translateY(0)"
               }}
             >
               <span
-                className="transition-all duration-300 group-hover:scale-110 group-hover:[filter:drop-shadow(0_0_10px_rgba(201,168,76,0.9))]"
-                style={{ color: "#c9a84c", marginBottom: "14px" }}
+                style={{
+                  color: "#c9a84c",
+                  marginBottom: "20px",
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "44px",
+                  height: "44px",
+                }}
               >
                 {ICON_MAP[a.icon]}
               </span>
@@ -135,10 +150,11 @@ export function AmenitiesSection({ variant = "dark", heading = "Everything You N
                 style={{
                   fontFamily: "var(--font-inter)",
                   fontWeight: 300,
-                  fontSize: "12px",
-                  color: isDark ? "rgba(255,255,255,0.85)" : "#5a4a6a",
-                  lineHeight: 1.4,
-                  letterSpacing: "0.02em",
+                  fontSize: "13px",
+                  color: isDark ? "rgba(255,255,255,0.8)" : "#5a4a6a",
+                  lineHeight: 1.5,
+                  maxWidth: "120px",
+                  textAlign: "center",
                 }}
               >
                 {a.label}
@@ -147,6 +163,20 @@ export function AmenitiesSection({ variant = "dark", heading = "Everything You N
           ))}
         </ul>
       </div>
+
+      <style>{`
+        @media (max-width: 1023px) {
+          #amenities-heading + ul,
+          [aria-label="Hotel amenities"] {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
+        }
+        @media (max-width: 639px) {
+          [aria-label="Hotel amenities"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+      `}</style>
     </section>
   )
 }

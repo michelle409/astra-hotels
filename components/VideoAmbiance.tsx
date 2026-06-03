@@ -131,9 +131,10 @@ export function VideoAmbiance() {
       />
 
       <div
-        className="relative flex flex-col items-center justify-center py-24 px-6 text-center"
-        style={{ zIndex: 2 }}
+        className="relative section-padding"
+        style={{ zIndex: 2, paddingLeft: "48px", paddingRight: "48px" }}
       >
+      <div className="site-container flex flex-col items-center text-center">
         <h2
           id="ambiance-heading"
           style={{
@@ -199,6 +200,7 @@ export function VideoAmbiance() {
             <StatCounter key={stat.label} stat={stat} trigger={triggered} />
           ))}
         </div>
+      </div>
       </div>
     </section>
   )

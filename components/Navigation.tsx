@@ -3,26 +3,38 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronDown, Menu, X, ArrowRight } from "lucide-react"
+import { ChevronDown, Menu, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { PROPERTIES } from "@/lib/data"
 
-const COLS = [
-  [
-    { area: "Electronic City", id: "electronic-city", branches: [{ id: "electronic-city", label: "Astra Hotels & Suites" }] },
-    { area: "HSR Layout", id: "hsr-layout", branches: [
-      { id: "hsr-sector-1", label: "HSR Sector 1" },
-      { id: "hsr-sector-7", label: "HSR Sector 7" },
-    ]},
-    { area: "Kadubeesanahalli", id: "kadubeesanahalli", branches: [{ id: "kadubeesanahalli", label: "Astra Hotels and Suites" }] },
-    { area: "Koramangala", id: "koramangala", branches: [{ id: "koramangala", label: "Astra Hotels & Suites" }] },
-  ],
-  [
-    { area: "Marathahalli", id: "marathahalli", branches: [{ id: "marathahalli", label: "Spice Garden Layout" }] },
-    { area: "Sarjapur", id: "sarjapur", branches: [{ id: "sarjapur", label: "Astra Hotels & Suites" }] },
-    { area: "Whitefield", id: "whitefield", branches: [{ id: "whitefield", label: "Astra Hotels & Suites" }] },
-  ],
+const MEGA_COLS = [
+  {
+    groups: [
+      { area: "Electronic City", id: "ec", branches: [{ id: "electronic-city", label: "Astra Hotels & Suites" }] },
+      { area: "Kadubeesanahalli", id: "kadu", branches: [{ id: "kadubeesanahalli", label: "Astra Hotels and Suites" }] },
+    ],
+  },
+  {
+    groups: [
+      { area: "HSR Layout", id: "hsr", branches: [
+        { id: "hsr-sector-1", label: "Sector 1" },
+        { id: "hsr-sector-7", label: "Sector 7" },
+      ]},
+    ],
+  },
+  {
+    groups: [
+      { area: "Koramangala", id: "kora", branches: [{ id: "koramangala", label: "Astra Hotels & Suites" }] },
+      { area: "Sarjapur", id: "sarja", branches: [{ id: "sarjapur", label: "Astra Hotels & Suites" }] },
+    ],
+  },
+  {
+    groups: [
+      { area: "Marathahalli", id: "mara", branches: [{ id: "marathahalli", label: "Spice Garden Layout" }] },
+      { area: "Whitefield", id: "white", branches: [{ id: "whitefield", label: "Astra Hotels & Suites" }] },
+    ],
+  },
 ]
 
 const today = new Date().toISOString().split("T")[0]
@@ -34,11 +46,17 @@ export function Navigation() {
   const [quickProperty, setQuickProperty] = useState("")
   const [quickCheckIn, setQuickCheckIn] = useState("")
   const [quickCheckOut, setQuickCheckOut] = useState("")
-  const megaRef = useRef<HTMLLIElement>(null)
+  const [shakeField, setShakeField] = useState<string | null>(null)
+
+  const megaLiRef = useRef<HTMLLIElement>(null)
+  const megaPanelRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const firstLinkRef = useRef<HTMLAnchorElement>(null)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const firstMobileLinkRef = useRef<HTMLAnchorElement>(null)
+  const mobileOverlayRef = useRef<HTMLDivElement>(null)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
   const router = useRouter()
 
   useEffect(() => {
@@ -47,18 +65,6 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  // Close mega on outside click
-  useEffect(() => {
-    const onPointer = (e: PointerEvent) => {
-      if (megaRef.current && !megaRef.current.contains(e.target as Node)) {
-        setMegaOpen(false)
-      }
-    }
-    document.addEventListener("pointerdown", onPointer)
-    return () => document.removeEventListener("pointerdown", onPointer)
-  }, [])
-
-  // Keyboard handlers
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -70,7 +76,6 @@ export function Navigation() {
     return () => document.removeEventListener("keydown", onKey)
   }, [megaOpen, mobileOpen])
 
-  // Mobile overlay focus management
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden"
@@ -81,43 +86,95 @@ export function Navigation() {
     return () => { document.body.style.overflow = "" }
   }, [mobileOpen])
 
-  // Move focus into mega on open
   useEffect(() => {
     if (megaOpen) setTimeout(() => firstLinkRef.current?.focus(), 50)
   }, [megaOpen])
+
+  function openMega() {
+    clearTimeout(closeTimerRef.current)
+    setMegaOpen(true)
+  }
+
+  function scheduleMegaClose() {
+    clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = setTimeout(() => setMegaOpen(false), 200)
+  }
 
   function closeMobile() {
     setMobileOpen(false)
     setTimeout(() => hamburgerRef.current?.focus(), 50)
   }
 
+  function handleMobileKeyDown(e: React.KeyboardEvent) {
+    if (e.key !== "Tab" || !mobileOverlayRef.current) return
+    const focusable = Array.from(
+      mobileOverlayRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus() }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
+  }
+
+  function triggerShake(field: string) {
+    setShakeField(null)
+    requestAnimationFrame(() => setShakeField(field))
+  }
+
   function handleQuickBook(e: React.FormEvent) {
     e.preventDefault()
-    if (!quickProperty) return
+    if (!quickProperty) { triggerShake("property"); return }
+    if (!quickCheckIn) { triggerShake("checkin"); return }
+    if (!quickCheckOut) { triggerShake("checkout"); return }
     const params = new URLSearchParams()
-    if (quickCheckIn) params.set("checkIn", quickCheckIn)
-    if (quickCheckOut) params.set("checkOut", quickCheckOut)
+    params.set("checkIn", quickCheckIn)
+    params.set("checkOut", quickCheckOut)
     setMegaOpen(false)
-    router.push(`/${quickProperty}${params.toString() ? "?" + params.toString() : ""}#booking`)
+    router.push(`/${quickProperty}?${params.toString()}#booking`)
   }
 
   const navTextColor = scrolled ? "#2d1b3d" : "white"
-  const navHoverStyle = "hover:text-[#c084c8] relative after:absolute after:bottom-[-3px] after:left-0 after:h-[1.5px] after:w-0 after:bg-[#c084c8] after:transition-all after:duration-200 hover:after:w-full"
 
   return (
     <>
+      <style>{`
+        @media (prefers-reduced-motion: no-preference) {
+          @keyframes megaFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .mega-panel-enter {
+            animation: megaFadeIn 0.25s ease both;
+          }
+        }
+      `}</style>
+
       <header
         role="banner"
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 h-[70px] transition-all duration-300",
-          scrolled ? "bg-white shadow-[0_2px_20px_rgba(86,29,112,0.12)]" : "bg-transparent"
+          "fixed top-0 left-0 right-0 z-[1000] transition-all duration-300"
         )}
+        style={{
+          height: "72px",
+          backgroundColor: scrolled ? "white" : "transparent",
+          boxShadow: scrolled ? "0 2px 20px rgba(86,29,112,0.08)" : "none",
+        }}
       >
-        <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+        <div
+          className="h-full flex items-center justify-between"
+          style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 48px" }}
+        >
+          {/* Logo */}
           <Link href="/" aria-label="Astra Hotels & Suites — Home">
             <Image
               src="/media/astra-logo.png"
-              alt="Astra Hotels & Suites"
+              alt=""
               width={140}
               height={48}
               style={{ objectFit: "contain", height: "auto" }}
@@ -126,20 +183,44 @@ export function Navigation() {
           </Link>
 
           {/* Desktop nav */}
-          <nav aria-label="Main navigation" className="hidden md:block">
-            <ul className="flex items-center gap-8 list-none" role="list">
-              <li ref={megaRef} className="relative">
+          <nav aria-label="Main navigation" className="hidden md:flex">
+            <ul className="flex items-center gap-10 list-none" role="list">
+
+              {/* Hotels — hover + click trigger */}
+              <li
+                ref={megaLiRef}
+                className="relative"
+                onMouseEnter={openMega}
+                onMouseLeave={scheduleMegaClose}
+              >
                 <button
                   ref={triggerRef}
                   aria-expanded={megaOpen}
                   aria-controls="mega-menu"
                   aria-haspopup="true"
-                  onClick={() => setMegaOpen(v => !v)}
-                  className={cn(
-                    "flex items-center gap-1 text-[13px] font-medium tracking-wider uppercase transition-colors duration-200",
-                    navHoverStyle
-                  )}
-                  style={{ color: navTextColor, fontFamily: "var(--font-inter)" }}
+                  onClick={() => megaOpen ? setMegaOpen(false) : openMega()}
+                  onFocus={openMega}
+                  onBlur={(e) => {
+                    if (
+                      !megaPanelRef.current?.contains(e.relatedTarget as Node) &&
+                      !megaLiRef.current?.contains(e.relatedTarget as Node)
+                    ) {
+                      scheduleMegaClose()
+                    }
+                  }}
+                  className="flex items-center gap-1.5 transition-colors duration-200"
+                  style={{
+                    fontFamily: "var(--font-inter)",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: megaOpen ? "#561d70" : navTextColor,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
                 >
                   Hotels
                   <ChevronDown
@@ -154,8 +235,16 @@ export function Navigation() {
                 <li key={label}>
                   <Link
                     href={`/#${label.toLowerCase()}`}
-                    className={cn("text-[13px] font-medium tracking-wider uppercase transition-colors duration-200", navHoverStyle)}
-                    style={{ color: navTextColor, fontFamily: "var(--font-inter)" }}
+                    className="transition-colors duration-200 hover:text-[#561d70]"
+                    style={{
+                      fontFamily: "var(--font-inter)",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: navTextColor,
+                      textDecoration: "none",
+                    }}
                   >
                     {label}
                   </Link>
@@ -164,16 +253,37 @@ export function Navigation() {
             </ul>
           </nav>
 
+          {/* Book Now */}
           <div className="hidden md:block">
             <Link
               href="/#booking"
-              className="inline-flex items-center px-6 py-[10px] rounded-md text-[14px] font-medium text-white transition-all duration-250 hover:scale-[1.02] hover:bg-[#7b3fa0]"
-              style={{ fontFamily: "var(--font-inter)", backgroundColor: "#561d70" }}
+              className="inline-flex items-center transition-all duration-200"
+              style={{
+                fontFamily: "var(--font-inter)",
+                fontSize: "13px",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "white",
+                backgroundColor: "#561d70",
+                padding: "12px 28px",
+                borderRadius: "6px",
+                textDecoration: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#7b3fa0"
+                e.currentTarget.style.transform = "scale(1.02)"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#561d70"
+                e.currentTarget.style.transform = "scale(1)"
+              }}
             >
               BOOK NOW
             </Link>
           </div>
 
+          {/* Hamburger */}
           <button
             ref={hamburgerRef}
             aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
@@ -188,106 +298,170 @@ export function Navigation() {
         </div>
       </header>
 
-      {/* ── MEGA MENU ── */}
+      {/* MEGA MENU */}
       <div
+        ref={megaPanelRef}
         id="mega-menu"
-        hidden={!megaOpen}
+        className={megaOpen ? "mega-panel-enter" : ""}
+        onMouseEnter={openMega}
+        onMouseLeave={scheduleMegaClose}
+        onBlur={(e) => {
+          if (
+            !megaPanelRef.current?.contains(e.relatedTarget as Node) &&
+            !megaLiRef.current?.contains(e.relatedTarget as Node)
+          ) {
+            scheduleMegaClose()
+          }
+        }}
         style={{
           display: megaOpen ? "block" : "none",
           position: "fixed",
-          top: "70px",
+          top: "72px",
           left: 0,
           right: 0,
-          zIndex: 49,
+          zIndex: 999,
           background: "white",
-          borderBottom: "1px solid #e8d5f0",
-          boxShadow: "0 20px 60px rgba(86,29,112,0.15)",
-          animation: megaOpen ? "megaFadeIn 0.3s ease both" : undefined,
+          borderTop: "2px solid #561d70",
+          boxShadow: "0 20px 60px rgba(86,29,112,0.12)",
         }}
       >
-        <style>{`
-          @keyframes megaFadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
+        <div
+          style={{
+            maxWidth: "1280px",
+            margin: "0 auto",
+            padding: "48px 48px 0",
+          }}
+        >
+          {/* 5-column grid: 4 location cols + quick book */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr 1fr 280px",
+              gap: "0 40px",
+              alignItems: "start",
+            }}
+          >
+            {/* Location columns */}
+            {MEGA_COLS.map((col, ci) => (
+              <div key={ci}>
+                {col.groups.map((group, gi) => (
+                  <div key={group.id} style={{ marginBottom: gi < col.groups.length - 1 ? "32px" : 0 }}>
+                    <span
+                      style={{
+                        display: "block",
+                        fontFamily: "var(--font-inter)",
+                        fontWeight: 700,
+                        fontSize: "10px",
+                        letterSpacing: "0.18em",
+                        textTransform: "uppercase",
+                        color: "#561d70",
+                        paddingBottom: "10px",
+                        borderBottom: "2px solid #561d70",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      {group.area}
+                    </span>
+                    <ul className="list-none" role="list">
+                      {group.branches.map((b, bi) => (
+                        <li key={b.id}>
+                          <Link
+                            ref={ci === 0 && gi === 0 && bi === 0 ? firstLinkRef : undefined}
+                            href={`/${b.id}`}
+                            onClick={() => setMegaOpen(false)}
+                            style={{
+                              display: "block",
+                              fontFamily: "var(--font-inter)",
+                              fontWeight: 400,
+                              fontSize: "15px",
+                              color: "#2d1b3d",
+                              textDecoration: "none",
+                              padding: "10px 12px",
+                              borderRadius: "6px",
+                              transition: "background 0.18s ease, color 0.18s ease, padding-left 0.18s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f3eef7"
+                              e.currentTarget.style.color = "#561d70"
+                              e.currentTarget.style.paddingLeft = "20px"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent"
+                              e.currentTarget.style.color = "#2d1b3d"
+                              e.currentTarget.style.paddingLeft = "12px"
+                            }}
+                          >
+                            {b.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ))}
 
-        <div className="max-w-7xl mx-auto px-10 py-10 flex gap-8">
-          {/* Location columns — 80% width */}
-          <div className="flex-1">
-            <div className="grid grid-cols-4 gap-8 mb-8">
-              {/* Row 1 — 4 columns */}
-              {COLS[0].map((loc, i) => (
-                <LocationColumn
-                  key={loc.id}
-                  loc={loc}
-                  linkRef={i === 0 ? firstLinkRef : undefined}
-                  onNavigate={() => setMegaOpen(false)}
-                />
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-8">
-              {/* Row 2 — 3 columns */}
-              {COLS[1].map(loc => (
-                <LocationColumn
-                  key={loc.id}
-                  loc={loc}
-                  onNavigate={() => setMegaOpen(false)}
-                />
-              ))}
-            </div>
-
-            {/* Bottom link */}
-            <div className="mt-8 pt-5 border-t border-[#e8d5f0]">
-              <Link
-                href="/#properties"
-                onClick={() => setMegaOpen(false)}
-                className="inline-flex items-center gap-2 text-[13px] text-[#561d70] hover:text-[#7b3fa0] transition-colors"
-                style={{ fontFamily: "var(--font-inter)", fontWeight: 300 }}
+            {/* Quick Book column */}
+            <div style={{ paddingLeft: "40px", borderLeft: "1px solid #e8d5f0" }}>
+              <p
+                style={{
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: 700,
+                  fontSize: "10px",
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: "#561d70",
+                  marginBottom: "20px",
+                }}
               >
-                Explore all 8 properties across Bangalore
-                <ArrowRight size={14} aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
+                QUICK BOOK
+              </p>
 
-          {/* Right panel — quick book, ~20% width */}
-          <div className="w-64 flex-shrink-0 pl-8 border-l border-[#e8d5f0]">
-            <p
-              className="label-caps mb-5"
-              style={{ color: "#561d70", fontSize: "11px" }}
-            >
-              QUICK BOOK
-            </p>
-            <form onSubmit={handleQuickBook} aria-label="Quick booking form">
-              <div className="flex flex-col gap-3">
-                <div>
+              <form onSubmit={handleQuickBook} aria-label="Quick booking form" noValidate>
+                <div style={{ marginBottom: "16px" }}>
                   <label
                     htmlFor="mega-property"
-                    className="block text-[11px] font-medium mb-1 uppercase tracking-wider"
-                    style={{ fontFamily: "var(--font-inter)", color: "#5a4a6a" }}
+                    style={{
+                      display: "block",
+                      fontFamily: "var(--font-inter)",
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#561d70",
+                      marginBottom: "6px",
+                    }}
                   >
                     Property
                   </label>
                   <select
                     id="mega-property"
                     value={quickProperty}
-                    onChange={e => setQuickProperty(e.target.value)}
-                    className="form-field text-[13px] py-2"
-                    style={{ fontSize: "13px" }}
+                    onChange={e => { setQuickProperty(e.target.value); setShakeField(null) }}
+                    aria-required="true"
+                    className={cn("form-field", shakeField === "property" && "shake")}
+                    style={{ height: "44px", padding: "0 16px" }}
                   >
-                    <option value="">Select property</option>
+                    <option value="" disabled>Select property</option>
                     {PROPERTIES.map(p => (
                       <option key={p.id} value={p.id}>{p.area}</option>
                     ))}
                   </select>
                 </div>
 
-                <div>
+                <div style={{ marginBottom: "16px" }}>
                   <label
                     htmlFor="mega-checkin"
-                    className="block text-[11px] font-medium mb-1 uppercase tracking-wider"
-                    style={{ fontFamily: "var(--font-inter)", color: "#5a4a6a" }}
+                    style={{
+                      display: "block",
+                      fontFamily: "var(--font-inter)",
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#561d70",
+                      marginBottom: "6px",
+                    }}
                   >
                     Check-in
                   </label>
@@ -296,16 +470,26 @@ export function Navigation() {
                     type="date"
                     min={today}
                     value={quickCheckIn}
-                    onChange={e => setQuickCheckIn(e.target.value)}
-                    className="form-field text-[13px] py-2"
+                    onChange={e => { setQuickCheckIn(e.target.value); setShakeField(null) }}
+                    aria-required="true"
+                    className={cn("form-field", shakeField === "checkin" && "shake")}
+                    style={{ height: "44px" }}
                   />
                 </div>
 
-                <div>
+                <div style={{ marginBottom: "8px" }}>
                   <label
                     htmlFor="mega-checkout"
-                    className="block text-[11px] font-medium mb-1 uppercase tracking-wider"
-                    style={{ fontFamily: "var(--font-inter)", color: "#5a4a6a" }}
+                    style={{
+                      display: "block",
+                      fontFamily: "var(--font-inter)",
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#561d70",
+                      marginBottom: "6px",
+                    }}
                   >
                     Check-out
                   </label>
@@ -314,33 +498,90 @@ export function Navigation() {
                     type="date"
                     min={quickCheckIn || today}
                     value={quickCheckOut}
-                    onChange={e => setQuickCheckOut(e.target.value)}
-                    className="form-field text-[13px] py-2"
+                    onChange={e => { setQuickCheckOut(e.target.value); setShakeField(null) }}
+                    aria-required="true"
+                    className={cn("form-field", shakeField === "checkout" && "shake")}
+                    style={{ height: "44px" }}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-md text-white text-[13px] font-medium transition-all duration-200 hover:bg-[#7b3fa0] mt-1"
-                  style={{ fontFamily: "var(--font-inter)", backgroundColor: "#561d70" }}
+                  style={{
+                    width: "100%",
+                    height: "44px",
+                    background: "#561d70",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontFamily: "var(--font-inter)",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    cursor: "pointer",
+                    marginTop: "8px",
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#7b3fa0" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#561d70" }}
                 >
                   CHECK AVAILABILITY
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
+          </div>
+
+          {/* Bottom strip */}
+          <div
+            style={{
+              borderTop: "1px solid #f0e8f7",
+              marginTop: "32px",
+              paddingTop: "20px",
+              paddingBottom: "32px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Link
+              href="/#properties"
+              onClick={() => setMegaOpen(false)}
+              style={{
+                fontFamily: "var(--font-inter)",
+                fontWeight: 400,
+                fontSize: "13px",
+                color: "#561d70",
+                textDecoration: "none",
+              }}
+            >
+              Explore all 8 properties →
+            </Link>
+            <span
+              style={{
+                fontFamily: "var(--font-inter)",
+                fontWeight: 300,
+                fontSize: "12px",
+                color: "#8a6a9a",
+              }}
+            >
+              8 properties · Bangalore
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay with focus trap */}
       {mobileOpen && (
         <div
+          ref={mobileOverlayRef}
           id="mobile-nav-overlay"
           role="dialog"
           aria-label="Navigation menu"
           aria-modal="true"
           className="fixed inset-0 z-[60] flex flex-col dark-bg"
           style={{ backgroundColor: "#561d70" }}
+          onKeyDown={handleMobileKeyDown}
         >
           <div className="flex justify-end p-6">
             <button onClick={closeMobile} aria-label="Close navigation menu" className="p-2 text-white rounded-md">
@@ -388,48 +629,5 @@ export function Navigation() {
         </div>
       )}
     </>
-  )
-}
-
-type ColProps = {
-  loc: { area: string; id: string; branches: { id: string; label: string }[] }
-  linkRef?: React.Ref<HTMLAnchorElement>
-  onNavigate: () => void
-}
-
-function LocationColumn({ loc, linkRef, onNavigate }: ColProps) {
-  return (
-    <div>
-      <p
-        className="text-[11px] font-bold uppercase tracking-widest mb-3 pl-3"
-        style={{
-          fontFamily: "var(--font-inter)",
-          color: "#561d70",
-          borderLeft: "2px solid #561d70",
-        }}
-      >
-        {loc.area}
-      </p>
-      <ul className="flex flex-col gap-1 list-none" role="list">
-        {loc.branches.map((b, i) => (
-          <li key={b.id}>
-            <Link
-              ref={i === 0 && linkRef ? linkRef : undefined}
-              href={`/${b.id}`}
-              onClick={onNavigate}
-              className="group flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] transition-all duration-200 hover:bg-[#f3eef7] hover:text-[#561d70] hover:pl-6"
-              style={{ fontFamily: "var(--font-inter)", color: "#2d1b3d" }}
-            >
-              {b.label}
-              <ArrowRight
-                size={14}
-                aria-hidden="true"
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-[#561d70]"
-              />
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }

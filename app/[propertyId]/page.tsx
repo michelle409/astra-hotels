@@ -185,10 +185,10 @@ export default function PropertyPage({ params }: Props) {
           ref={bookingSectionRef}
           id="booking"
           aria-labelledby="prop-booking-heading"
-          className="py-16 px-6"
-          style={{ backgroundColor: "#561d70" }}
+          className="section-padding"
+          style={{ backgroundColor: "#561d70", paddingLeft: "48px", paddingRight: "48px" }}
         >
-          <div className="max-w-3xl mx-auto">
+          <div style={{ maxWidth: "860px", margin: "0 auto" }}>
             <h2
               id="prop-booking-heading"
               style={{
@@ -219,10 +219,10 @@ export default function PropertyPage({ params }: Props) {
         {/* Day Use Rooms */}
         <section
           aria-labelledby="dayuse-heading"
-          className="py-20 px-6"
-          style={{ backgroundColor: "var(--light-gray)" }}
+          className="section-padding"
+          style={{ backgroundColor: "var(--light-gray)", paddingLeft: "48px", paddingRight: "48px" }}
         >
-          <div className="max-w-4xl mx-auto">
+          <div className="site-container">
             <h2
               id="dayuse-heading"
               style={{
@@ -235,7 +235,7 @@ export default function PropertyPage({ params }: Props) {
             >
               Premium Day Stays
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: "36px" }}>
               {[
                 {
                   title: "Quick Luxe Stay",
@@ -248,7 +248,7 @@ export default function PropertyPage({ params }: Props) {
                   desc: "Relax, recharge, or work in style with premium hospitality and contemporary conveniences.",
                 },
               ].map((pkg) => (
-                <div key={pkg.title} className="bg-white rounded-2xl p-8 shadow-sm border border-[#e8d5f0]">
+                <div key={pkg.title} className="bg-white rounded-2xl shadow-sm border border-[#e8d5f0]" style={{ padding: "40px" }}>
                   <h3
                     style={{
                       fontFamily: "var(--font-cormorant)",
@@ -285,10 +285,11 @@ export default function PropertyPage({ params }: Props) {
           <section
             id="dining"
             aria-labelledby="restaurant-heading"
-            className="py-24 px-6 bg-white"
+            className="section-padding bg-white"
+            style={{ paddingLeft: "48px", paddingRight: "48px" }}
           >
-            <div className="max-w-5xl mx-auto">
-              <div className="flex flex-col md:flex-row gap-12 items-center">
+            <div className="site-container">
+              <div className="flex flex-col md:flex-row items-center" style={{ gap: "80px" }}>
                 {/* Images */}
                 <div className="md:w-1/2 relative">
                   {property.restaurant.images[0] && (
@@ -415,12 +416,13 @@ export default function PropertyPage({ params }: Props) {
         <section
           id="contact"
           aria-labelledby="contact-heading"
-          className="py-20"
-          style={{ backgroundColor: "var(--off-white)" }}
+          className="section-padding"
+          style={{ backgroundColor: "var(--off-white)", paddingLeft: "48px", paddingRight: "48px" }}
         >
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row overflow-hidden rounded-2xl shadow-lg">
+          <div className="site-container">
+          <div className="flex flex-col md:flex-row overflow-hidden rounded-2xl shadow-lg">
             {/* Map */}
-            <div className="md:w-1/2 h-72 md:h-auto min-h-[320px]">
+            <div className="md:w-1/2 flex-shrink-0" style={{ minHeight: "480px" }}>
               <iframe
                 title={`Map showing ${property.name}, ${property.location} location`}
                 src={`https://maps.google.com/maps?q=${encodeURIComponent(property.address)}&output=embed`}
@@ -499,6 +501,7 @@ export default function PropertyPage({ params }: Props) {
                 </a>
               </div>
             </div>
+          </div>
           </div>
         </section>
       </main>

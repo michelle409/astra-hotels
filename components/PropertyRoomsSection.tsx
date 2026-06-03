@@ -28,9 +28,10 @@ export function PropertyRoomsSection({ property }: Props) {
     <section
       id="rooms"
       aria-labelledby="prop-rooms-heading"
-      className="py-20 px-6 bg-white"
+      className="section-padding bg-white"
+      style={{ paddingLeft: "48px", paddingRight: "48px" }}
     >
-      <div className="max-w-5xl mx-auto">
+      <div className="site-container">
         <h2
           id="prop-rooms-heading"
           style={{
@@ -38,17 +39,17 @@ export function PropertyRoomsSection({ property }: Props) {
             fontWeight: 300,
             fontSize: "clamp(2rem, 4vw, 2.5rem)",
             color: "#2d1b3d",
-            marginBottom: "3rem",
+            marginBottom: "56px",
           }}
         >
           Choose Your Room
         </h2>
 
-        <div className="flex flex-col gap-12">
+        <div style={{ display: "flex", flexDirection: "column", gap: "56px" }}>
           {ROOMS.map((room) => (
             <article key={room.id} className="flex flex-col md:flex-row rounded-2xl overflow-hidden bg-white shadow-lg border border-[#f0e6f8]">
               {/* Image */}
-              <div className="relative md:w-[55%] h-64 md:h-auto flex-shrink-0" style={{ minHeight: "320px" }}>
+              <div className="relative md:w-[55%] h-64 md:h-auto flex-shrink-0" style={{ minHeight: "460px" }}>
                 <Image
                   src={room.image}
                   alt={`${room.name} — ${room.size}, ${room.beds}`}
@@ -74,7 +75,7 @@ export function PropertyRoomsSection({ property }: Props) {
               </div>
 
               {/* Details */}
-              <div className="flex-1 p-10 flex flex-col justify-between">
+              <div className="flex-1 flex flex-col justify-between" style={{ padding: "48px 56px" }}>
                 <div>
                   <h3 style={{ fontFamily: "var(--font-cormorant)", fontWeight: 500, fontSize: "2rem", color: "#561d70", marginBottom: "0.5rem" }}>
                     {room.name}

@@ -9,7 +9,6 @@ import { getDistance } from "@/lib/utils"
 type NearestResult = {
   property: (typeof PROPERTIES)[0]
   distance: number
-  driveMins: number
 }
 
 export function GpsFinder() {
@@ -17,9 +16,15 @@ export function GpsFinder() {
   const [result, setResult] = useState<NearestResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [displayDist, setDisplayDist] = useState(0)
+  const [prefersReduced, setPrefersReduced] = useState(false)
   const statusRef = useRef<HTMLDivElement>(null)
   const resultCardRef = useRef<HTMLDivElement>(null)
   const animFrameRef = useRef<number>(0)
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setPrefersReduced(mq.matches)
+  }, [])
 
   function handleDetect() {
     setLoading(true)
@@ -27,7 +32,7 @@ export function GpsFinder() {
     setResult(null)
 
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported in your browser. Here are all Astra properties.")
+      setError("Geolocation is not supported in your browser.")
       setLoading(false)
       return
     }
@@ -40,31 +45,30 @@ export function GpsFinder() {
 
         for (const p of PROPERTIES) {
           const d = getDistance(latitude, longitude, p.lat, p.lng)
-          if (d < minDist) {
-            minDist = d
-            nearest = p
-          }
+          if (d < minDist) { minDist = d; nearest = p }
         }
 
-        const driveMins = Math.round((minDist / 30) * 60)
-        setResult({ property: nearest, distance: minDist, driveMins })
+        setResult({ property: nearest, distance: minDist })
         setLoading(false)
 
         if (statusRef.current) {
-          statusRef.current.textContent = `Nearest hotel: ${nearest.name}, ${nearest.location}, ${minDist.toFixed(1)} km away`
+          statusRef.current.textContent = `Nearest hotel found: ${nearest.name}, ${nearest.location}, ${minDist.toFixed(1)} km away`
         }
       },
       () => {
-        setError("Location access was denied. Here are all Astra properties.")
+        setError("Location access was denied.")
         setLoading(false)
       },
       { timeout: 10000, maximumAge: 300000 }
     )
   }
 
-  // Animate distance counter
+  // Animate distance counter — decorative only, no live region
   useEffect(() => {
-    if (!result) return
+    if (!result || prefersReduced) {
+      if (result) setDisplayDist(parseFloat(result.distance.toFixed(1)))
+      return
+    }
     const target = parseFloat(result.distance.toFixed(1))
     const start = performance.now()
     const duration = 1500
@@ -82,317 +86,454 @@ export function GpsFinder() {
 
     animFrameRef.current = requestAnimationFrame(step)
     return () => cancelAnimationFrame(animFrameRef.current)
-  }, [result])
+  }, [result, prefersReduced])
 
-  // Focus result card on arrive
   useEffect(() => {
     if (result && resultCardRef.current) {
       resultCardRef.current.focus()
     }
   }, [result])
 
+  const googleMapsUrl = result
+    ? `https://www.google.com/maps/dir/?api=1&destination=${result.property.lat},${result.property.lng}`
+    : ""
+
   return (
     <section
       id="locations"
-      className="w-full py-20 px-6"
-      style={{ backgroundColor: "var(--off-white)" }}
+      aria-labelledby="gps-heading"
+      className="relative overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, #561d70 0%, #3d1452 100%)",
+        padding: "120px 48px",
+      }}
     >
-      {/* Screen reader status — WCAG 4.1.3 */}
+      {/* Screen reader status */}
+      <div ref={statusRef} aria-live="polite" aria-atomic="true" className="sr-only" />
+
+      {/* Background decoration */}
+      <div aria-hidden="true" style={{
+        position: "absolute", top: "-200px", right: "-200px",
+        width: "600px", height: "600px",
+        borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)",
+        pointerEvents: "none",
+      }} />
+      <div aria-hidden="true" style={{
+        position: "absolute", top: "-50px", right: "100px",
+        width: "300px", height: "300px",
+        borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)",
+        pointerEvents: "none",
+      }} />
+
       <div
-        ref={statusRef}
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      />
-
-      <div className="max-w-3xl mx-auto text-center">
-        <p
-          className="label-caps mb-4"
-          style={{ color: "#561d70" }}
-          aria-hidden="true"
-        >
-          FIND YOUR NEAREST ASTRA
-        </p>
-        <h2
-          style={{
-            fontFamily: "var(--font-cormorant)",
-            fontWeight: 300,
-            fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
-            color: "#561d70",
-            marginBottom: "1rem",
-          }}
-        >
-          The closest comfort is closer than you think.
-        </h2>
-        <p
-          style={{
-            fontFamily: "var(--font-inter)",
-            fontWeight: 300,
-            fontSize: "16px",
-            color: "#5a4a6a",
-            marginBottom: "2.5rem",
-            lineHeight: 1.6,
-          }}
-        >
-          Allow location access and we&apos;ll instantly show you the nearest Astra property.
-        </p>
-
-        {!result && (
-          <div className="inline-flex items-center justify-center relative">
-            {/* Pulse rings when loading */}
-            {loading && (
-              <>
-                <style>{`
-                  @keyframes gps-ring {
-                    0% { transform: scale(1); opacity: 0.6; }
-                    100% { transform: scale(2.2); opacity: 0; }
-                  }
-                `}</style>
-                {[0, 0.4, 0.8].map((delay) => (
-                  <span
-                    key={delay}
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      borderRadius: "8px",
-                      border: "2px solid #c084c8",
-                      animation: `gps-ring 1.8s ease-out ${delay}s infinite`,
-                      pointerEvents: "none",
-                    }}
-                  />
-                ))}
-              </>
-            )}
-            <button
-              onClick={handleDetect}
-              disabled={loading}
-              aria-busy={loading}
-              aria-label="Find nearest Astra hotel using my location"
-              className="inline-flex items-center gap-3 text-white text-[14px] font-medium tracking-widest uppercase rounded-md transition-all duration-300 disabled:opacity-70"
-              style={{
-                fontFamily: "var(--font-inter)",
-                backgroundColor: "#561d70",
-                height: "52px",
-                padding: "0 32px",
-                position: "relative",
-                zIndex: 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.backgroundColor = "#3d1452"
-                  e.currentTarget.style.transform = "scale(1.02)"
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#561d70"
-                e.currentTarget.style.transform = "scale(1)"
-              }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={20} aria-hidden="true" className="animate-spin" />
-                  <span className="sr-only">Finding nearest hotel...</span>
-                  Finding...
-                </>
-              ) : (
-                <>
-                  <MapPin size={20} aria-hidden="true" />
-                  DETECT MY LOCATION
-                </>
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Error state — role="alert" for assertive announcement */}
-        {error && (
-          <div role="alert" className="mt-6 mb-4 text-center">
-            <p
-              style={{
-                fontFamily: "var(--font-inter)",
-                fontSize: "14px",
-                color: "#7b3fa0",
-                marginBottom: "1rem",
-              }}
-            >
-              {error}
-            </p>
-            <button
-              onClick={handleDetect}
-              className="text-[13px] underline text-[#561d70]"
-              style={{ fontFamily: "var(--font-inter)" }}
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {/* Error: show all properties */}
-        {error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 text-left">
-            {PROPERTIES.map((p) => (
-              <Link
-                key={p.id}
-                href={`/${p.id}`}
-                className="block p-4 rounded-xl border border-[#e8d5f0] bg-white hover:border-[#561d70] hover:shadow-lg transition-all duration-300"
-              >
-                <p
-                  className="font-medium text-[#561d70] mb-1"
-                  style={{ fontFamily: "var(--font-cormorant)", fontSize: "1.1rem" }}
-                >
-                  {p.area}
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-inter)",
-                    fontSize: "13px",
-                    color: "#5a4a6a",
-                  }}
-                >
-                  {p.rooms} rooms
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Success result card */}
-        {result && (
-          <div
-            ref={resultCardRef}
-            tabIndex={-1}
-            className="mt-8 rounded-2xl overflow-hidden shadow-2xl outline-none"
+        style={{
+          maxWidth: "1280px",
+          margin: "0 auto",
+          display: "flex",
+          gap: "80px",
+          alignItems: "center",
+        }}
+      >
+        {/* Left — text + CTA */}
+        <div style={{ flex: "0 0 55%" }}>
+          <span
             style={{
-              background: "linear-gradient(135deg, #561d70, #3d1452)",
-              animation: "fadeSlideUp 0.5s cubic-bezier(0.2,0.8,0.2,1) both",
+              display: "inline-block",
+              fontFamily: "var(--font-inter)",
+              fontWeight: 500,
+              fontSize: "10px",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              background: "rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.8)",
+              padding: "6px 14px",
+              borderRadius: "20px",
+              marginBottom: "24px",
             }}
           >
-            <style>{`
-              @keyframes fadeSlideUp {
-                from { opacity: 0; transform: translateY(40px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-            `}</style>
+            GPS POWERED
+          </span>
 
-            <div className="flex flex-col md:flex-row dark-bg">
-              {/* Left — details */}
-              <div className="flex-1 p-8 text-left">
-                <p
-                  className="label-caps mb-3"
-                  style={{ color: "#c084c8", fontSize: "10px" }}
-                >
-                  NEAREST PROPERTY
-                </p>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-cormorant)",
-                    fontSize: "1.8rem",
-                    fontWeight: 300,
-                    color: "white",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  {result.property.name}
-                </h3>
-                <p
+          <h2
+            id="gps-heading"
+            style={{
+              fontFamily: "var(--font-cormorant)",
+              fontWeight: 300,
+              fontSize: "clamp(2.5rem, 5vw, 4rem)",
+              lineHeight: 1.1,
+              color: "white",
+              marginBottom: "20px",
+            }}
+          >
+            Find Your Nearest<br />
+            <em>Astra Hotel.</em>
+          </h2>
+
+          <p
+            style={{
+              fontFamily: "var(--font-inter)",
+              fontWeight: 300,
+              fontSize: "18px",
+              color: "rgba(255,255,255,0.7)",
+              maxWidth: "420px",
+              lineHeight: 1.6,
+              marginBottom: "40px",
+            }}
+          >
+            {"We'll detect your location and find the closest Astra property — with accurate straight-line distance."}
+          </p>
+
+          {!result && (
+            <div className="inline-flex items-center justify-center relative">
+              {loading && (
+                <>
+                  <style>{`
+                    @media (prefers-reduced-motion: no-preference) {
+                      @keyframes gps-ring {
+                        0% { transform: scale(1); opacity: 0.6; }
+                        100% { transform: scale(2.2); opacity: 0; }
+                      }
+                    }
+                  `}</style>
+                  {[0, 0.4, 0.8].map((delay) => (
+                    <span
+                      key={delay}
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        borderRadius: "8px",
+                        border: "2px solid rgba(255,255,255,0.5)",
+                        animation: `gps-ring 1.8s ease-out ${delay}s infinite`,
+                        pointerEvents: "none",
+                      }}
+                    />
+                  ))}
+                </>
+              )}
+              <button
+                onClick={handleDetect}
+                disabled={loading}
+                aria-busy={loading}
+                aria-label="Find nearest Astra hotel using my location"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  background: "white",
+                  color: "#561d70",
+                  padding: "16px 36px",
+                  borderRadius: "8px",
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  border: "none",
+                  cursor: loading ? "default" : "pointer",
+                  opacity: loading ? 0.8 : 1,
+                  transition: "all 0.25s",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.background = "#f3eef7"
+                    e.currentTarget.style.transform = "scale(1.02)"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "white"
+                  e.currentTarget.style.transform = "scale(1)"
+                }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={18} aria-hidden="true" className="animate-spin" />
+                    <span className="sr-only">Detecting your location...</span>
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <MapPin size={18} aria-hidden="true" />
+                    DETECT MY LOCATION
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <div role="alert" className="mt-6">
+              <p style={{ fontFamily: "var(--font-inter)", fontSize: "14px", color: "rgba(255,255,255,0.8)", marginBottom: "12px" }}>
+                {error}
+              </p>
+              <div className="flex gap-3 flex-wrap">
+                <button
+                  onClick={handleDetect}
                   style={{
                     fontFamily: "var(--font-inter)",
-                    fontWeight: 300,
+                    fontSize: "13px",
                     color: "rgba(255,255,255,0.8)",
-                    fontSize: "15px",
-                    marginBottom: "1rem",
+                    background: "none",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    borderRadius: "6px",
+                    padding: "8px 16px",
+                    cursor: "pointer",
                   }}
                 >
-                  {result.property.location}
-                </p>
-
-                {/* Distance badge */}
-                <span
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-2"
+                  Try again
+                </button>
+                <Link
+                  href="/#properties"
                   style={{
-                    backgroundColor: "rgba(201,168,76,0.2)",
-                    color: "#c9a84c",
+                    display: "inline-flex",
+                    alignItems: "center",
                     fontFamily: "var(--font-inter)",
-                    border: "1px solid rgba(201,168,76,0.4)",
-                  }}
-                  aria-label={`${result.distance.toFixed(1)} kilometres away`}
-                >
-                  <MapPin size={14} aria-hidden="true" />
-                  <span aria-live="polite" aria-atomic="true">
-                    {displayDist.toFixed(1)} km away
-                  </span>
-                </span>
-
-                <p
-                  style={{
-                    fontFamily: "var(--font-inter)",
-                    fontWeight: 300,
-                    color: "rgba(255,255,255,0.55)",
                     fontSize: "13px",
-                    marginBottom: "1rem",
+                    color: "white",
+                    background: "rgba(255,255,255,0.15)",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    borderRadius: "6px",
+                    padding: "8px 16px",
+                    textDecoration: "none",
                   }}
                 >
-                  ~{result.driveMins} minutes by car
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-inter)",
-                    fontWeight: 300,
-                    color: "rgba(255,255,255,0.7)",
-                    fontSize: "13px",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  {result.property.address}
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-inter)",
-                    fontWeight: 300,
-                    color: "rgba(255,255,255,0.6)",
-                    fontSize: "13px",
-                    marginBottom: "1.5rem",
-                  }}
-                >
-                  {result.property.phone}
-                </p>
-
-                <div className="flex gap-3 flex-wrap">
-                  <Link
-                    href={`/${result.property.id}`}
-                    className="inline-flex items-center px-5 py-2 rounded-md text-[13px] font-medium text-[#561d70] bg-white transition-all duration-200 hover:bg-[#f3eef7]"
-                    style={{ fontFamily: "var(--font-inter)" }}
-                  >
-                    VIEW PROPERTY
-                  </Link>
-                  <Link
-                    href={`/${result.property.id}#booking`}
-                    className="inline-flex items-center px-5 py-2 rounded-md text-[13px] font-medium text-[#1a0a24]"
-                    style={{
-                      fontFamily: "var(--font-inter)",
-                      backgroundColor: "#c9a84c",
-                    }}
-                  >
-                    BOOK NOW
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right — map */}
-              <div className="md:w-64 h-48 md:h-auto flex-shrink-0 p-4">
-                <iframe
-                  title={`Map showing ${result.property.name}, ${result.property.location}`}
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(result.property.address)}&output=embed`}
-                  className="w-full h-full rounded-xl border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+                  View all properties
+                </Link>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Right — result card */}
+        <div style={{ flex: "0 0 45%" }}>
+          {result ? (
+            <div
+              ref={resultCardRef}
+              tabIndex={-1}
+              className="rounded-2xl outline-none"
+              style={{
+                background: "white",
+                padding: "40px",
+                boxShadow: "0 40px 80px rgba(0,0,0,0.3)",
+                opacity: 1,
+                transform: "translateX(0)",
+                transition: prefersReduced ? "none" : "opacity 0.5s ease, transform 0.5s ease",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: 600,
+                  fontSize: "10px",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "#561d70",
+                  marginBottom: "12px",
+                }}
+              >
+                NEAREST PROPERTY
+              </p>
+
+              <h3
+                style={{
+                  fontFamily: "var(--font-cormorant)",
+                  fontWeight: 500,
+                  fontSize: "1.8rem",
+                  color: "#2d1b3d",
+                  marginBottom: "4px",
+                }}
+              >
+                {result.property.name}
+              </h3>
+              <p
+                style={{
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: 300,
+                  fontSize: "15px",
+                  color: "#8a6a9a",
+                  marginBottom: "24px",
+                }}
+              >
+                {result.property.location}
+              </p>
+
+              {/* Distance + directions */}
+              <div
+                style={{ display: "flex", gap: "24px", alignItems: "center", marginBottom: "20px" }}
+              >
+                <div>
+                  <p
+                    aria-label={`${result.distance.toFixed(1)} kilometres straight-line distance`}
+                    style={{
+                      fontFamily: "var(--font-cormorant)",
+                      fontWeight: 600,
+                      fontSize: "2.2rem",
+                      color: "#561d70",
+                      lineHeight: 1,
+                    }}
+                  >
+                    <span aria-hidden="true">{displayDist.toFixed(1)} km</span>
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-inter)",
+                      fontWeight: 300,
+                      fontSize: "12px",
+                      color: "#8a6a9a",
+                      marginTop: "4px",
+                    }}
+                  >
+                    straight-line distance
+                  </p>
+                </div>
+
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Get directions to ${result.property.name} (opens in Google Maps)`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "#561d70",
+                    color: "white",
+                    padding: "10px 20px",
+                    borderRadius: "6px",
+                    fontFamily: "var(--font-inter)",
+                    fontWeight: 500,
+                    fontSize: "13px",
+                    textDecoration: "none",
+                    transition: "background 0.2s",
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#7b3fa0" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#561d70" }}
+                >
+                  <MapPin size={14} aria-hidden="true" />
+                  Get Directions →
+                </a>
+              </div>
+
+              <hr style={{ border: "none", borderTop: "1px solid #e8d5f0", margin: "0 0 20px" }} />
+
+              <p
+                style={{
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: 300,
+                  fontSize: "14px",
+                  color: "#5a4a6a",
+                  marginBottom: "24px",
+                }}
+              >
+                {result.property.address}
+              </p>
+
+              <div style={{ display: "flex", gap: "12px" }}>
+                <Link
+                  href={`/${result.property.id}`}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "44px",
+                    borderRadius: "8px",
+                    fontFamily: "var(--font-inter)",
+                    fontWeight: 500,
+                    fontSize: "13px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: "#561d70",
+                    background: "white",
+                    border: "1.5px solid #561d70",
+                    textDecoration: "none",
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f3eef7" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "white" }}
+                >
+                  VIEW PROPERTY
+                </Link>
+                <Link
+                  href={`/${result.property.id}#booking`}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "44px",
+                    borderRadius: "8px",
+                    fontFamily: "var(--font-inter)",
+                    fontWeight: 500,
+                    fontSize: "13px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: "white",
+                    background: "#561d70",
+                    textDecoration: "none",
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#7b3fa0" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#561d70" }}
+                >
+                  BOOK NOW
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* Placeholder card when no result yet */
+            <div
+              aria-hidden="true"
+              style={{
+                borderRadius: "16px",
+                border: "2px dashed rgba(255,255,255,0.15)",
+                height: "320px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <p style={{
+                fontFamily: "var(--font-cormorant)",
+                fontSize: "1.2rem",
+                fontWeight: 300,
+                color: "rgba(255,255,255,0.3)",
+                fontStyle: "italic",
+                textAlign: "center",
+                padding: "20px",
+              }}>
+                Your nearest Astra<br />will appear here.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Mobile: stack vertically at small screens */}
+      <style>{`
+        @media (max-width: 767px) {
+          #locations > div[style] {
+            flex-direction: column !important;
+            gap: 48px !important;
+          }
+          #locations > div[style] > div:first-child,
+          #locations > div[style] > div:last-child {
+            flex: none !important;
+            width: 100% !important;
+          }
+          #locations {
+            padding: 60px 20px !important;
+          }
+        }
+        @media (max-width: 1023px) and (min-width: 768px) {
+          #locations {
+            padding: 80px 32px !important;
+          }
+        }
+      `}</style>
     </section>
   )
 }

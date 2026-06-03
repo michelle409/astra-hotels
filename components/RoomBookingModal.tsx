@@ -179,7 +179,7 @@ export function RoomBookingModal({ room, property, onClose }: Props) {
       aria-labelledby="book-modal-title"
       aria-describedby="book-modal-desc"
       onClick={(e) => { if (e.target === dialogRef.current) onClose() }}
-      onKeyDown={(e) => { if (e.key === "Escape") onClose() }}
+      onCancel={onClose}
       className="p-0 bg-transparent border-0 max-w-none w-full h-full m-0"
       style={{
         position: "fixed",
@@ -208,9 +208,11 @@ export function RoomBookingModal({ room, property, onClose }: Props) {
         }}
       >
         <style>{`
-          @keyframes modalIn {
-            from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(0.96); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          @media (prefers-reduced-motion: no-preference) {
+            @keyframes modalIn {
+              from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(0.96); }
+              to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            }
           }
         `}</style>
 
